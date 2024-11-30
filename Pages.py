@@ -1,7 +1,7 @@
 from pathlib import Path
 from Navigation import navigate
 import pymysql.cursors
-from Credentials import get_creds
+from Credentials import get_creds, get_admin_pw, get_staff_pw
 import re
 from tkinter import *
 from tkinter import messagebox
@@ -151,10 +151,10 @@ def loginpage(window, canvas):
             return
 
         # Successful login cases
-        if username == "staff" and password == "password":
+        if username == "staff" and password == get_staff_pw():
             messagebox.showinfo("Success", "Login Successful as staff")
             navigate(window, homepage)
-        elif username == "admin" and password == "admin":
+        elif username == "admin" and password == get_admin_pw():
             messagebox.showinfo("Success", "Login Successful as admin")
             navigate(window, adminpage)
 
@@ -276,10 +276,9 @@ def adminpage (window, canvas):
     def upload_poster(concert_index):
         TARGET_WIDTH = 306
         TARGET_HEIGHT = 379
-        """
-        Upload an image, resize and crop it to fit specified dimensions,
-        and save it as image_1.png, image_2.png, or image_3.png.
-        """
+
+        # Upload an image, resize and crop it to fit specified dimensions,and save it as image_1.png, image_2.png, or image_3.png.
+
         filename = filedialog.askopenfilename(
             title="Select Poster",
             filetypes=(("Image Files", "*.png;*.jpg;*.jpeg"), ("All Files", "*.*"))
@@ -345,12 +344,12 @@ def adminpage (window, canvas):
                 cursor = conn.cursor()
 
                 try:
-                    # Step 1: Check the total number of distinct concert names
+                    # Check the total number of distinct concert names
                     query_check_names = "SELECT COUNT(DISTINCT Concert) FROM Concerts;"
                     cursor.execute(query_check_names)
                     distinct_names_count = cursor.fetchone()[0]
 
-                    # Step 2: Check the number of distinct dates for the specified concert name
+                    # Check the number of distinct dates for the specified concert name
                     query_check_dates_per_concert = "SELECT COUNT(DISTINCT ConcertDate) FROM Concerts WHERE Concert = %s;"
                     cursor.execute(query_check_dates_per_concert, (concert_name,))
                     distinct_dates_count_for_concert = cursor.fetchone()[0]
@@ -359,7 +358,7 @@ def adminpage (window, canvas):
                     distinct_concerts = [row[0] for row in cursor.fetchall()]
                     print(distinct_concerts)
 
-                    # Step 3: Validate capacity
+                    # Validate capacity
                     if distinct_names_count >= 3 and concert_name not in distinct_concerts:
                         messagebox.showerror("Capacity Reached",
                                              "You can no longer add more concert names. Capacity reached.")
@@ -370,7 +369,7 @@ def adminpage (window, canvas):
                                              f"The concert '{concert_name}' already has 3 distinct dates. Cannot add more dates.")
                         return
 
-                    # Step 4: Insert the new concert or date
+                    # Insert the new concert or date
                     query_insert = """
                                    INSERT INTO Concerts (Concert, ConcertDate, ConcertSection, SectionAvailableSeats, Price)
                                    VALUES 
@@ -684,10 +683,7 @@ def homepage(window, canvas):
             query = "insert into Customers(Concert) values(%s);"
 
             try:
-                # STEP 6 - CREATE cursor Object
                 cursor = conn.cursor()
-
-                # STEP 7 - EXECUTE THE Query
                 noofrecoredinsert = cursor.execute(query,concert)
                 conn.commit()
             except Exception as e:
@@ -910,10 +906,10 @@ def datepage(window, canvas):
     if conn is not None:
         cursor = conn.cursor()
 
-        # Step 1: Fetch the most recent concert from the Customers table
+        # Fetch the most recent concert from the Customers table
         query_recent_concert = "SELECT Concert FROM Customers ORDER BY CustomerID DESC LIMIT 1;"
         cursor.execute(query_recent_concert)
-        result_recent_concert = cursor.fetchone()  # Returns a tuple like ('Concert A',)
+        result_recent_concert = cursor.fetchone()
         if result_recent_concert:
             recent_concert = result_recent_concert[0]
             print(f"Most Recent Concert: {recent_concert}")
@@ -921,7 +917,7 @@ def datepage(window, canvas):
             print("No recent concert found.")
             return
 
-        # Step 2: Fetch up to 3 distinct ConcertDates for the recent concert
+        # Fetch up to 3 distinct ConcertDates for the recent concert
         query_concert_dates = """
                     SELECT DISTINCT ConcertDate 
                     FROM Concerts 
@@ -929,7 +925,7 @@ def datepage(window, canvas):
                     LIMIT 3;
                 """
         cursor.execute(query_concert_dates, (recent_concert,))
-        result_concert_dates = cursor.fetchall()  # Returns a list of tuples like [(date1,), (date2,)]
+        result_concert_dates = cursor.fetchall()
 
         # Pad the results to ensure 3 variables
         temp_dates = list(result_concert_dates) + [(None,)] * (3 - len(result_concert_dates))
@@ -961,8 +957,6 @@ def datepage(window, canvas):
             print("PROBLEM WITH Database Connection", ex)
         else:
             print("Database Connection SUCCESS")
-
-        # STEP 3 - CHECK Connection is Establish or not
 
         if conn is not None:
             query_find_incomplete = """
@@ -1289,7 +1283,6 @@ def seatpage(window, canvas):
         else:
             print("Database Connection SUCCESS")
 
-        # STEP 3 - CHECK Connection is Establish or not
         if conn is not None:
             cursor = conn.cursor()
             # Get the most recent CustomerID (last inserted row)
@@ -1324,7 +1317,6 @@ def seatpage(window, canvas):
         else:
             print("Database Connection SUCCESS")
 
-        # STEP 3 - CHECK Connection is Establish or not
         if conn is not None:
             cursor = conn.cursor()
             # Get the most recent CustomerID (last inserted row)
@@ -1353,7 +1345,6 @@ def seatpage(window, canvas):
                                     WHERE Concert = %s AND ConcertDate = %s AND ConcertSection = %s
                                 """, (concert, concert_date, selected_section))
 
-                        #messagebox.showinfo("Success", f"Seat booked in {selected_section}!")
                         query_find_incomplete = """
                                             SELECT CustomerID
                                             FROM Customers
@@ -1412,7 +1403,6 @@ def seatpage(window, canvas):
         else:
             print("Database Connection SUCCESS")
 
-        # STEP 3 - CHECK Connection is Establish or not
         if conn is not None:
             query_find_incomplete = """
                     SELECT CustomerID
@@ -1457,8 +1447,6 @@ def seatpage(window, canvas):
         fill="#FFFFFF",
         font=("Poppins Bold", 48 * -1)
     )
-
-
 
     button_image_1 = PhotoImage(
         file=relative_to_assets("button_1.png"))
@@ -1601,6 +1589,498 @@ def seatpage(window, canvas):
         outline="")
     window.mainloop()
 
+def customerpage(window, canvas):
+    OUTPUT_PATH = Path(__file__).parent
+    ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame1")
+
+    def relative_to_assets(path: str) -> Path:
+        return ASSETS_PATH / Path(path)
+
+    def customer_button_click():
+        if entry_1.get() == "":
+            messagebox.showerror("Alert", "Please enter customer name")
+        elif not re.match(r"^[A-Za-z]+(?: [A-Za-z]+)+$", entry_1.get()):
+            messagebox.showerror("Alert", "Please enter a valid Full Name (e.g., John Doe)")
+
+        elif entry_2.get() == "":
+            messagebox.showerror("Alert", "Please enter customer phone number")
+        elif not re.match(r"^0\d{2} \d{3} \d{3,4}$", entry_2.get()):
+            messagebox.showerror("Alert", "Please enter a valid phone number (e.g., 012 345 678 or 012 345 6789)")
+        else:
+
+            name = entry_1.get()
+            phone = entry_2.get()
+
+            conn = None
+            try:
+                conn = pymysql.connect(
+                    host="127.0.0.1",
+                    user="root",
+                    password=get_creds(),
+                    db="csa",
+                )
+
+            except Exception as ex:
+                print("PROBLEM WITH Database Connection", ex)
+            else:
+                print("Database Connection SUCCESS")
+
+            if conn is not None:
+                query_find_incomplete = """
+                                 SELECT CustomerID
+                                 FROM Customers
+                                 WHERE CustomerName IS NULL
+                                    OR PhoneNumber IS NULL
+                                    OR Concert IS NULL
+                                    OR ConcertDate IS NULL
+                                    OR Section IS NULL
+                                 ORDER BY CustomerID DESC
+                                 LIMIT 1;
+                             """
+                cursor = conn.cursor()
+                cursor.execute(query_find_incomplete)
+                result = cursor.fetchone()
+
+                if result:
+                    # Incomplete row found, update it
+                    customer_id = result[0]
+                    query_update = """
+                                     UPDATE Customers
+                                     SET 
+                                         CustomerName = COALESCE(CustomerName, %s),
+                                         PhoneNumber = COALESCE(PhoneNumber, %s)
+
+                                     WHERE CustomerID = %s;
+                                 """
+                    try:
+                        noofrecoredinsert = cursor.execute(query_update, (name, phone, customer_id))
+                        conn.commit()
+
+                    except Exception as e:
+                        print("INSERT PROBLEM ", e)
+                    else:
+                        if noofrecoredinsert > 0:
+                            print("RECORD INSERTED ")
+                            messagebox.showinfo("Success", "Payment Complete")
+                            navigate(window, receiptpage)
+
+    def home_button_click():
+
+        conn = None
+        try:
+            conn = pymysql.connect(
+                host="127.0.0.1",
+                user="root",
+                password=get_creds(),
+                db="csa",
+            )
+
+        except Exception as ex:
+            print("PROBLEM WITH Database Connection", ex)
+        else:
+            print("Database Connection SUCCESS")
+
+        if conn is not None:
+            query_find_incomplete = """
+                     SELECT CustomerID
+                     FROM Customers
+                     WHERE CustomerName IS NULL
+                        OR PhoneNumber IS NULL
+                        OR Concert IS NULL
+                        OR ConcertDate IS NULL
+                        OR Section IS NULL
+                     ORDER BY CustomerID DESC
+                     LIMIT 1;
+                 """
+            cursor = conn.cursor()
+            cursor.execute(query_find_incomplete)
+            result = cursor.fetchone()
+
+            if result:
+                # Incomplete row found, update it
+                customer_id = result[0]
+                query_update = """
+                         DELETE FROM Customers
+                         WHERE CustomerID = %s;
+                     """
+                try:
+                    noofrecoredinsert = cursor.execute(query_update, (customer_id))
+                    conn.commit()
+
+                except Exception as e:
+                    print("DELETE PROBLEM ", e)
+                else:
+                    if noofrecoredinsert > 0:
+                        print("RECORD DELETED ")
+                        messagebox.showinfo("Warning", "Restart Purchase")
+                        navigate(window, homepage)
+
+    canvas.place(x=0, y=0)
+    canvas.create_rectangle(
+        126.0,
+        235.0,
+        891.0,
+        633.0,
+        fill="#270683",
+        outline="")
+
+    canvas.create_text(
+        92.0,
+        24.0,
+        anchor="nw",
+        text="Customer Information",
+        fill="#FFFFFF",
+        font=("Poppins Bold", 48 * -1)
+    )
+
+    button_image_1 = PhotoImage(
+        file=relative_to_assets("button_1.png"))
+    button_1 = Button(
+        image=button_image_1,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: home_button_click(),
+        relief="flat"
+    )
+    button_1.place(
+        x=30.0,
+        y=38.0,
+        width=45.0,
+        height=46.0
+    )
+
+    canvas.create_rectangle(
+        29.0,
+        118.0,
+        980.0,
+        122.0,
+        fill="#D9D9D9",
+        outline="")
+
+    entry_image_1 = PhotoImage(
+        file=relative_to_assets("entry_1.png"))
+    entry_bg_1 = canvas.create_image(
+        507.5,
+        323.0,
+        image=entry_image_1
+    )
+    entry_1 = Entry(
+        bd=0,
+        bg="#FFFFFF",
+        fg="#000716",
+        highlightthickness=0,
+        font = ("Poppins Regular", 37 * -1)
+    )
+    entry_1.place(
+        x=180.0,
+        y=295.0,
+        width=655.0,
+        height=54.0
+    )
+
+    entry_image_2 = PhotoImage(
+        file=relative_to_assets("entry_2.png"))
+    entry_bg_2 = canvas.create_image(
+        507.5,
+        450.0,
+        image=entry_image_2
+    )
+    entry_2 = Entry(
+        bd=0,
+        bg="#FFFFFF",
+        fg="#000716",
+        highlightthickness=0,
+        font = ("Poppins Regular", 37 * -1)
+    )
+    entry_2.place(
+        x=180.0,
+        y=423.0,
+        width=655.0,
+        height=52.0
+    )
+
+    button_image_2 = PhotoImage(
+        file=relative_to_assets("button_2.png"))
+    button_2 = Button(
+        image=button_image_2,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: customer_button_click(),
+        relief="flat"
+    )
+    button_2.place(
+        x=154.0,
+        y=515.0,
+        width=137.0,
+        height=76.0
+    )
+
+    canvas.create_text(
+        165.0,
+        249.0,
+        anchor="nw",
+        text="Full Name",
+        fill="#FFFFFF",
+        font=("Poppins Regular", 32 * -1)
+    )
+
+    canvas.create_text(
+        157.0,
+        376.0,
+        anchor="nw",
+        text="Phone Number",
+        fill="#FFFFFF",
+        font=("Poppins Regular", 32 * -1)
+    )
+    window.mainloop()
+
+def receiptpage(window, canvas):
+    OUTPUT_PATH = Path(__file__).parent
+    ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame6")
+
+    def relative_to_assets(path: str) -> Path:
+        return ASSETS_PATH / Path(path)
+
+    conn = None
+    try:
+        conn = pymysql.connect(
+            host="127.0.0.1",
+            user="root",
+            password=get_creds(),
+            db="csa",
+        )
+
+    except Exception as ex:
+        print("PROBLEM WITH Database Connection", ex)
+    else:
+        print("Database Connection SUCCESS")
+
+    if conn is not None:
+        cursor = conn.cursor()
+        # Get the most recent CustomerID (last inserted row)
+        cursor.execute("SELECT CustomerID, CustomerName, PhoneNumber, Concert, ConcertDate, Section FROM Customers ORDER BY CustomerID DESC LIMIT 1")
+        result = cursor.fetchone()
+        customer_Id, customer_name, phone_number, concert_name, concert_date, seat_section = result
+        # Get the price of the concert
+        cursor.execute("SELECT Price FROM Concerts where ConcertSection = %s", seat_section)
+        price_query_result = cursor.fetchone()
+        if price_query_result:
+            price = price_query_result[0]
+
+            cursor.execute("Select memberName FROM membership where memberName = (%s) and memberPhoneNumber = (%s)",(customer_name,phone_number))
+            member = cursor.fetchone()
+            if member:
+                price = float(price-(price*0.1))
+                messagebox.showinfo("Special Offer", "Customer gets 10% off their purchase")
+                cursor.execute("UPDATE customers SET cost = (%s) WHERE CustomerID = (%s)", (price, customer_Id))
+                conn.commit()
+            else:
+                cursor.execute("UPDATE customers SET cost = (%s) WHERE CustomerID = (%s)", (price, customer_Id))
+                conn.commit()
+
+    canvas.place(x=0, y=0)
+    canvas.create_text(
+        105.0,
+        29.0,
+        anchor="nw",
+        text="Purchase Summary",
+        fill="#FFFFFF",
+        font=("Poppins Bold", 48 * -1)
+    )
+
+    button_image_1 = PhotoImage(
+        file=relative_to_assets("button_1.png"))
+    button_1 = Button(
+        image=button_image_1,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: navigate(window, homepage),
+        relief="flat"
+    )
+    button_1.place(
+        x=30.0,
+        y=38.0,
+        width=45.0,
+        height=46.0
+    )
+
+    canvas.create_rectangle(
+        29.0,
+        118.0,
+        980.0,
+        122.0,
+        fill="#D9D9D9",
+        outline="")
+
+    canvas.create_rectangle(
+        53.0,
+        252.0,
+        947.0,
+        578.0,
+        fill="#EDEDED",
+        outline="")
+
+    canvas.create_text(
+        304.0,
+        298.0,
+        anchor="nw",
+        text=concert_name,
+        fill="#020202",
+        font=("Poppins Bold", 24 * -1)
+    )
+
+    canvas.create_text(
+        304.0,
+        266.0,
+        anchor="nw",
+        text="Concert Ticket",
+        fill="#020202",
+        font=("Poppins Regular", 16 * -1)
+    )
+
+    canvas.create_text(
+        322.0,
+        387.0,
+        anchor="nw",
+        text=customer_name,
+        fill="#020202",
+        font=("Poppins SemiBold", 16 * -1)
+    )
+
+    canvas.create_text(
+        322.0,
+        435.0,
+        anchor="nw",
+        text=phone_number,
+        fill="#020202",
+        font=("Poppins SemiBold", 16 * -1)
+    )
+
+    canvas.create_text(
+        575.0,
+        387.0,
+        anchor="nw",
+        text=concert_date,
+        fill="#020202",
+        font=("Poppins SemiBold", 16 * -1)
+    )
+
+    canvas.create_text(
+        575.0,
+        435.0,
+        anchor="nw",
+        text=f"${price}",
+        fill="#020202",
+        font=("Poppins SemiBold", 16 * -1)
+    )
+
+    canvas.create_text(
+        322.0,
+        488.0,
+        anchor="nw",
+        text=f"Customer ID : {customer_Id}",
+        fill="#020202",
+        font=("Poppins SemiBold", 16 * -1)
+    )
+
+    canvas.create_text(
+        575.0,
+        488.0,
+        anchor="nw",
+        text=seat_section,
+        fill="#020202",
+        font=("Poppins SemiBold", 16 * -1)
+    )
+
+    canvas.create_rectangle(
+        312.0,
+        375.0,
+        783.0,
+        377.0,
+        fill="#000000",
+        outline="")
+
+    canvas.create_rectangle(
+        313.0,
+        423.0,
+        784.0,
+        425.0,
+        fill="#000000",
+        outline="")
+
+    canvas.create_rectangle(
+        312.0,
+        474.0,
+        783.0,
+        476.0,
+        fill="#000000",
+        outline="")
+
+    canvas.create_rectangle(
+        312.0,
+        524.0,
+        783.0,
+        526.0,
+        fill="#000000",
+        outline="")
+
+    image_image_1 = PhotoImage(
+        file=relative_to_assets("image_1.png"))
+    image_1 = canvas.create_image(
+        165.0,
+        415.0,
+        image=image_image_1
+    )
+
+    canvas.create_rectangle(
+        288.0,
+        251.0,
+        290.0,
+        578.0,
+        fill="#000000",
+        outline="")
+
+    canvas.create_rectangle(
+        561.0,
+        355.0,
+        563.0,
+        548.0,
+        fill="#000000",
+        outline="")
+
+    canvas.create_rectangle(
+        810.0,
+        252.0,
+        812.0,
+        578.0,
+        fill="#000000",
+        outline="")
+
+    image_image_2 = PhotoImage(
+        file=relative_to_assets("image_2.png"))
+    image_2 = canvas.create_image(
+        876.0,
+        413.0,
+        image=image_image_2
+    )
+
+    button_image_2 = PhotoImage(
+        file=relative_to_assets("button_2.png"))
+    button_2 = Button(
+        image=button_image_2,
+        borderwidth=0,
+        highlightthickness=0,
+        command=lambda: messagebox.showinfo("Success", "Ticket Printed"),
+        relief="flat"
+    )
+    button_2.place(
+        x=443.0,
+        y=624.0,
+        width=137.0,
+        height=76.0
+    )
+    window.mainloop()
+
 def member_registration(window, canvas):
     OUTPUT_PATH = Path(__file__).parent
     ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame1")
@@ -1623,8 +2103,6 @@ def member_registration(window, canvas):
             name = entry_1.get()
             phone = entry_2.get()
 
-            print(name, phone)
-
             conn = None
             try:
                 conn = pymysql.connect(
@@ -1639,7 +2117,6 @@ def member_registration(window, canvas):
             else:
                 print("Database Connection SUCCESS")
 
-            # STEP 3 - CHECK Connection is Establish or not
             if conn is not None:
                 cursor = conn.cursor()
                 # Query to check if the member already exists
@@ -1823,7 +2300,6 @@ def ticketsearch(window, canvas):
             else:
                 print("Database Connection SUCCESS")
 
-            # STEP 3 - CHECK Connection is Establish or not
             if conn is not None:
                 cursor = conn.cursor()
                 query = """
@@ -1841,8 +2317,6 @@ def ticketsearch(window, canvas):
                 else:
                     messagebox.showinfo("ALERT", "Customer Ticket Not Found")
                     return
-
-
 
     canvas.place(x=0, y=0)
 
@@ -2116,506 +2590,6 @@ def ticketsearch(window, canvas):
     )
     window.mainloop()
 
-
-def customerpage(window, canvas):
-    OUTPUT_PATH = Path(__file__).parent
-    ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame1")
-
-    def relative_to_assets(path: str) -> Path:
-        return ASSETS_PATH / Path(path)
-
-    def customer_button_click():
-        if entry_1.get() == "":
-            messagebox.showerror("Alert", "Please enter customer name")
-        elif not re.match(r"^[A-Za-z]+(?: [A-Za-z]+)+$", entry_1.get()):
-            messagebox.showerror("Alert", "Please enter a valid Full Name (e.g., John Doe)")
-
-        elif entry_2.get() == "":
-            messagebox.showerror("Alert", "Please enter customer phone number")
-        elif not re.match(r"^0\d{2} \d{3} \d{3,4}$", entry_2.get()):
-            messagebox.showerror("Alert", "Please enter a valid phone number (e.g., 012 345 678 or 012 345 6789)")
-        else:
-
-            name = entry_1.get()
-            phone = entry_2.get()
-
-            print(name, phone)
-
-            conn = None
-            try:
-                conn = pymysql.connect(
-                    host="127.0.0.1",
-                    user="root",
-                    password=get_creds(),
-                    db="csa",
-                )
-
-            except Exception as ex:
-                print("PROBLEM WITH Database Connection", ex)
-            else:
-                print("Database Connection SUCCESS")
-
-            # STEP 3 - CHECK Connection is Establish or not
-            if conn is not None:
-                query_find_incomplete = """
-                                 SELECT CustomerID
-                                 FROM Customers
-                                 WHERE CustomerName IS NULL
-                                    OR PhoneNumber IS NULL
-                                    OR Concert IS NULL
-                                    OR ConcertDate IS NULL
-                                    OR Section IS NULL
-                                 ORDER BY CustomerID DESC
-                                 LIMIT 1;
-                             """
-                cursor = conn.cursor()
-                cursor.execute(query_find_incomplete)
-                result = cursor.fetchone()
-
-                if result:
-                    # Incomplete row found, update it
-                    customer_id = result[0]
-                    query_update = """
-                                     UPDATE Customers
-                                     SET 
-                                         CustomerName = COALESCE(CustomerName, %s),
-                                         PhoneNumber = COALESCE(PhoneNumber, %s)
-
-                                     WHERE CustomerID = %s;
-                                 """
-                    try:
-                        noofrecoredinsert = cursor.execute(query_update, (name, phone, customer_id))
-                        conn.commit()
-
-                    except Exception as e:
-                        print("INSERT PROBLEM ", e)
-                    else:
-                        if noofrecoredinsert > 0:
-                            print("RECORD INSERTED ")
-                            messagebox.showinfo("Success", "Payment Complete")
-                            navigate(window, receiptpage)
-
-    def home_button_click():
-
-        conn = None
-        try:
-            conn = pymysql.connect(
-                host="127.0.0.1",
-                user="root",
-                password=get_creds(),
-                db="csa",
-            )
-
-        except Exception as ex:
-            print("PROBLEM WITH Database Connection", ex)
-        else:
-            print("Database Connection SUCCESS")
-
-        # STEP 3 - CHECK Connection is Establish or not
-        if conn is not None:
-            query_find_incomplete = """
-                     SELECT CustomerID
-                     FROM Customers
-                     WHERE CustomerName IS NULL
-                        OR PhoneNumber IS NULL
-                        OR Concert IS NULL
-                        OR ConcertDate IS NULL
-                        OR Section IS NULL
-                     ORDER BY CustomerID DESC
-                     LIMIT 1;
-                 """
-            cursor = conn.cursor()
-            cursor.execute(query_find_incomplete)
-            result = cursor.fetchone()
-
-            if result:
-                # Incomplete row found, update it
-                customer_id = result[0]
-                query_update = """
-                         DELETE FROM Customers
-                         WHERE CustomerID = %s;
-                     """
-                try:
-                    noofrecoredinsert = cursor.execute(query_update, (customer_id))
-                    conn.commit()
-
-                except Exception as e:
-                    print("DELETE PROBLEM ", e)
-                else:
-                    if noofrecoredinsert > 0:
-                        print("RECORD DELETED ")
-                        messagebox.showinfo("Warning", "Restart Purchase")
-                        navigate(window, homepage)
-
-    canvas.place(x=0, y=0)
-    canvas.create_rectangle(
-        126.0,
-        235.0,
-        891.0,
-        633.0,
-        fill="#270683",
-        outline="")
-
-    canvas.create_text(
-        92.0,
-        24.0,
-        anchor="nw",
-        text="Customer Information",
-        fill="#FFFFFF",
-        font=("Poppins Bold", 48 * -1)
-    )
-
-    button_image_1 = PhotoImage(
-        file=relative_to_assets("button_1.png"))
-    button_1 = Button(
-        image=button_image_1,
-        borderwidth=0,
-        highlightthickness=0,
-        command=lambda: home_button_click(),
-        relief="flat"
-    )
-    button_1.place(
-        x=30.0,
-        y=38.0,
-        width=45.0,
-        height=46.0
-    )
-
-    canvas.create_rectangle(
-        29.0,
-        118.0,
-        980.0,
-        122.0,
-        fill="#D9D9D9",
-        outline="")
-
-    entry_image_1 = PhotoImage(
-        file=relative_to_assets("entry_1.png"))
-    entry_bg_1 = canvas.create_image(
-        507.5,
-        323.0,
-        image=entry_image_1
-    )
-    entry_1 = Entry(
-        bd=0,
-        bg="#FFFFFF",
-        fg="#000716",
-        highlightthickness=0,
-        font = ("Poppins Regular", 37 * -1)
-    )
-    entry_1.place(
-        x=180.0,
-        y=295.0,
-        width=655.0,
-        height=54.0
-    )
-
-    entry_image_2 = PhotoImage(
-        file=relative_to_assets("entry_2.png"))
-    entry_bg_2 = canvas.create_image(
-        507.5,
-        450.0,
-        image=entry_image_2
-    )
-    entry_2 = Entry(
-        bd=0,
-        bg="#FFFFFF",
-        fg="#000716",
-        highlightthickness=0,
-        font = ("Poppins Regular", 37 * -1)
-    )
-    entry_2.place(
-        x=180.0,
-        y=423.0,
-        width=655.0,
-        height=52.0
-    )
-
-    button_image_2 = PhotoImage(
-        file=relative_to_assets("button_2.png"))
-    button_2 = Button(
-        image=button_image_2,
-        borderwidth=0,
-        highlightthickness=0,
-        command=lambda: customer_button_click(),
-        relief="flat"
-    )
-    button_2.place(
-        x=154.0,
-        y=515.0,
-        width=137.0,
-        height=76.0
-    )
-
-    canvas.create_text(
-        165.0,
-        249.0,
-        anchor="nw",
-        text="Full Name",
-        fill="#FFFFFF",
-        font=("Poppins Regular", 32 * -1)
-    )
-
-    canvas.create_text(
-        157.0,
-        376.0,
-        anchor="nw",
-        text="Phone Number",
-        fill="#FFFFFF",
-        font=("Poppins Regular", 32 * -1)
-    )
-    window.mainloop()
-
-def receiptpage(window, canvas):
-    OUTPUT_PATH = Path(__file__).parent
-    ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame6")
-
-    def relative_to_assets(path: str) -> Path:
-        return ASSETS_PATH / Path(path)
-
-    conn = None
-    try:
-        conn = pymysql.connect(
-            host="127.0.0.1",
-            user="root",
-            password=get_creds(),
-            db="csa",
-        )
-
-    except Exception as ex:
-        print("PROBLEM WITH Database Connection", ex)
-    else:
-        print("Database Connection SUCCESS")
-
-    # STEP 3 - CHECK Connection is Establish or not
-    if conn is not None:
-        cursor = conn.cursor()
-        # Get the most recent CustomerID (last inserted row)
-        cursor.execute("SELECT CustomerID, CustomerName, PhoneNumber, Concert, ConcertDate, Section FROM Customers ORDER BY CustomerID DESC LIMIT 1")
-        result = cursor.fetchone()
-        customer_Id, customer_name, phone_number, concert_name, concert_date, seat_section = result
-        # Get the price of the concert
-        cursor.execute("SELECT Price FROM Concerts where ConcertSection = %s", seat_section)
-        price_query_result = cursor.fetchone()
-        if price_query_result:
-            price = price_query_result[0]
-
-            cursor.execute("Select memberName FROM membership where memberName = (%s) and memberPhoneNumber = (%s)",(customer_name,phone_number))
-            member = cursor.fetchone()
-            if member:
-                price = float(price-(price*0.1))
-                messagebox.showinfo("Special Offer", "Customer gets 10% off their purchase")
-                cursor.execute("UPDATE customers SET cost = (%s) WHERE CustomerID = (%s)", (price, customer_Id))
-                conn.commit()
-            else:
-                cursor.execute("UPDATE customers SET cost = (%s) WHERE CustomerID = (%s)", (price, customer_Id))
-                conn.commit()
-
-
-
-    canvas.place(x=0, y=0)
-    canvas.create_text(
-        105.0,
-        29.0,
-        anchor="nw",
-        text="Purchase Summary",
-        fill="#FFFFFF",
-        font=("Poppins Bold", 48 * -1)
-    )
-
-    button_image_1 = PhotoImage(
-        file=relative_to_assets("button_1.png"))
-    button_1 = Button(
-        image=button_image_1,
-        borderwidth=0,
-        highlightthickness=0,
-        command=lambda: navigate(window, homepage),
-        relief="flat"
-    )
-    button_1.place(
-        x=30.0,
-        y=38.0,
-        width=45.0,
-        height=46.0
-    )
-
-    canvas.create_rectangle(
-        29.0,
-        118.0,
-        980.0,
-        122.0,
-        fill="#D9D9D9",
-        outline="")
-
-    canvas.create_rectangle(
-        53.0,
-        252.0,
-        947.0,
-        578.0,
-        fill="#EDEDED",
-        outline="")
-
-    canvas.create_text(
-        304.0,
-        298.0,
-        anchor="nw",
-        text=concert_name,
-        fill="#020202",
-        font=("Poppins Bold", 24 * -1)
-    )
-
-    canvas.create_text(
-        304.0,
-        266.0,
-        anchor="nw",
-        text="Concert Ticket",
-        fill="#020202",
-        font=("Poppins Regular", 16 * -1)
-    )
-
-    canvas.create_text(
-        322.0,
-        387.0,
-        anchor="nw",
-        text=customer_name,
-        fill="#020202",
-        font=("Poppins SemiBold", 16 * -1)
-    )
-
-    canvas.create_text(
-        322.0,
-        435.0,
-        anchor="nw",
-        text=phone_number,
-        fill="#020202",
-        font=("Poppins SemiBold", 16 * -1)
-    )
-
-    canvas.create_text(
-        575.0,
-        387.0,
-        anchor="nw",
-        text=concert_date,
-        fill="#020202",
-        font=("Poppins SemiBold", 16 * -1)
-    )
-
-    canvas.create_text(
-        575.0,
-        435.0,
-        anchor="nw",
-        text=f"${price}",
-        fill="#020202",
-        font=("Poppins SemiBold", 16 * -1)
-    )
-
-    canvas.create_text(
-        322.0,
-        488.0,
-        anchor="nw",
-        text=f"Customer ID : {customer_Id}",
-        fill="#020202",
-        font=("Poppins SemiBold", 16 * -1)
-    )
-
-    canvas.create_text(
-        575.0,
-        488.0,
-        anchor="nw",
-        text=seat_section,
-        fill="#020202",
-        font=("Poppins SemiBold", 16 * -1)
-    )
-
-    canvas.create_rectangle(
-        312.0,
-        375.0,
-        783.0,
-        377.0,
-        fill="#000000",
-        outline="")
-
-    canvas.create_rectangle(
-        313.0,
-        423.0,
-        784.0,
-        425.0,
-        fill="#000000",
-        outline="")
-
-    canvas.create_rectangle(
-        312.0,
-        474.0,
-        783.0,
-        476.0,
-        fill="#000000",
-        outline="")
-
-    canvas.create_rectangle(
-        312.0,
-        524.0,
-        783.0,
-        526.0,
-        fill="#000000",
-        outline="")
-
-    image_image_1 = PhotoImage(
-        file=relative_to_assets("image_1.png"))
-    image_1 = canvas.create_image(
-        165.0,
-        415.0,
-        image=image_image_1
-    )
-
-    canvas.create_rectangle(
-        288.0,
-        251.0,
-        290.0,
-        578.0,
-        fill="#000000",
-        outline="")
-
-    canvas.create_rectangle(
-        561.0,
-        355.0,
-        563.0,
-        548.0,
-        fill="#000000",
-        outline="")
-
-    canvas.create_rectangle(
-        810.0,
-        252.0,
-        812.0,
-        578.0,
-        fill="#000000",
-        outline="")
-
-    image_image_2 = PhotoImage(
-        file=relative_to_assets("image_2.png"))
-    image_2 = canvas.create_image(
-        876.0,
-        413.0,
-        image=image_image_2
-    )
-
-    button_image_2 = PhotoImage(
-        file=relative_to_assets("button_2.png"))
-    button_2 = Button(
-        image=button_image_2,
-        borderwidth=0,
-        highlightthickness=0,
-        command=lambda: messagebox.showinfo("Success", "Ticket Printed"),
-        relief="flat"
-    )
-    button_2.place(
-        x=443.0,
-        y=624.0,
-        width=137.0,
-        height=76.0
-    )
-    window.mainloop()
-
 def receiptsearchpage(window, canvas):
     OUTPUT_PATH = Path(__file__).parent
     ASSETS_PATH = OUTPUT_PATH / Path(r"assets\frame6")
@@ -2637,7 +2611,6 @@ def receiptsearchpage(window, canvas):
     else:
         print("Database Connection SUCCESS")
 
-    # STEP 3 - CHECK Connection is Establish or not
     if conn is not None:
         cursor = conn.cursor()
         query = """
