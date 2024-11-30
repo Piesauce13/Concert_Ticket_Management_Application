@@ -1,6 +1,6 @@
 # **Dontrey Concert Ticket Management Application**
 
-## Prerequisites
+## ⚙️Prerequisites
 Before you begin, ensure you have the following software installed on your machine:
 
 ### Applications
@@ -18,7 +18,7 @@ Before you begin, ensure you have the following software installed on your machi
 ### Others
 The GUI uses Poppins Font Family
 
-## Setup Instructions
+## 🖥️Setup Instructions
 ### 1. Configure Database Credentials
 First, update the credentials in the credentials.py file.
 
@@ -72,7 +72,15 @@ CREATE TABLE membership (
 );
 ```
 * Run the script to create the csa database and its tables.
-## Usage and Features
+
+### 3. Add Concerts
+* Log in as admin to add concerts to database
+* The maximum concerts that can be added is 3, and each concert can have up to 3 dates each
+* Enter concert name and date
+* Then upload a concert poster through the concert1 button that will be displayed with the first concert name added
+* Thus uploading through the concert2 and concert3 poster will correspond with the next two concerts as well
+
+## 📄Usage and Features
 Once the application is running, you can start using it to manage concerts and tickets.
 * Set up admin and staff accounts
 
@@ -83,7 +91,10 @@ Once the application is running, you can start using it to manage concerts and t
 ### As staff:
 * Make ticket purchase by selecting concert name, concert date, seat section, fill in customer name and phone number, and save receipt ticket
 * Register membership for customers that will get 10% discount for purchase
-* Search for past ticket reciepts
+* Search for past ticket receipts
+
+## Contribution
+* The GUI of this code is generated from Figma using Tkinter-Designer : https://github.com/ParthJadhav/Tkinter-Designer.git
 
 **If you encounter any issues or have any questions, feel free to open an issue in the repository.**
 
