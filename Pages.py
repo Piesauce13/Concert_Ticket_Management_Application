@@ -2611,10 +2611,7 @@ def receiptsearchpage(window, canvas):
 
     if conn is not None:
         cursor = conn.cursor()
-        query = """
-                        SELECT * FROM Customers
-                        WHERE CustomerName = %s AND PhoneNumber = %s
-                    """
+        query = """ SELECT * FROM Customers WHERE CustomerName = %s AND PhoneNumber = %s ORDER BY ConcertDate ASC LIMIT 1; """
         cursor.execute(query, (namesearch, phonesearch))
         result = cursor.fetchone()
         conn.commit()
