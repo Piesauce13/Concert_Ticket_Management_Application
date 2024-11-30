@@ -6,8 +6,6 @@ import re
 from tkinter import *
 from tkinter import messagebox
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, filedialog
-import os
-import shutil
 from PIL import Image, ImageTk
 
 def startpage(window, canvas):
@@ -143,10 +141,10 @@ def loginpage(window, canvas):
             return
 
         # Check for incorrect passwords
-        if username == "staff" and password != "password":
+        if username == "staff" and password != get_staff_pw():
             messagebox.showerror("Alert", "Wrong password for staff")
             return
-        elif username == "admin" and password != "admin":
+        elif username == "admin" and password != get_admin_pw():
             messagebox.showerror("Alert", "Wrong password for admin")
             return
 
