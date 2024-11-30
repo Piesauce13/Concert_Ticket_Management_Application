@@ -1,4 +1,4 @@
-# **Dontrey Concert Ticket Management Application**
+# **🎟️Dontrey Concert Ticket Management Application🎵**
 
 ## ⚙️Prerequisites
 Before you begin, ensure you have the following software installed on your machine:
@@ -9,17 +9,22 @@ Before you begin, ensure you have the following software installed on your machi
 * MySQL Workbench
 
 ### Packages
-* pathlib
-* pymysql.cursors
-* re
-* tkinter
-* PIL
+* `pip install pathlib`
+* `pip install pymysql`
+* `pip install re`
+* `pip install tkinter`
+* `pip install PIL`
 
 ### Others
 The GUI uses Poppins Font Family
 
 ## 🖥️Setup Instructions
-### 1. Configure Database Credentials
+### 1. 📂Download Application
+* Download the zip file from this repository and extract it
+* Right click and open the extracted folder with pycharm or visual studio
+* Configure the environment
+
+### 2. 🔑Configure Database Credentials
 First, update the credentials in the credentials.py file.
 
 * Open the credentials.py file.
@@ -38,7 +43,7 @@ def get_staff_pw():
     return "Enter Your Staff Password Here"
 ```
 
-### 2. Create the Database and Tables
+### 3. 📄Create the Database and Tables
 Next, use MySQL Workbench to set up the database and tables required for the project.
 
 * Open MySQL Workbench and connect to your MySQL Server.
@@ -73,14 +78,15 @@ CREATE TABLE membership (
 ```
 * Run the script to create the csa database and its tables.
 
-### 3. Add Concerts
+### 4. 🔍Add Concerts
+* Locate the main.py file and run it
 * Log in as admin to add concerts to database
 * The maximum concerts that can be added is 3, and each concert can have up to 3 dates each
 * Enter concert name and date
 * Then upload a concert poster through the concert1 button that will be displayed with the first concert name added
 * Thus uploading through the concert2 and concert3 poster will correspond with the next two concerts as well
 
-## 📄Usage and Features
+## 🚀Usage and Features
 Once the application is running, you can start using it to manage concerts and tickets.
 * Set up admin and staff accounts
 
@@ -93,7 +99,7 @@ Once the application is running, you can start using it to manage concerts and t
 * Register membership for customers that will get 10% discount for purchase
 * Search for past ticket receipts
 
-## Contribution
+## ✍️Contribution
 * The GUI of this code is generated from Figma using Tkinter-Designer : https://github.com/ParthJadhav/Tkinter-Designer.git
 
 **If you encounter any issues or have any questions, feel free to open an issue in the repository.**
